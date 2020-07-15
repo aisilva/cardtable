@@ -1,30 +1,34 @@
 #!/usr/bin/python3
-'''# -*- coding: utf-8 -*-'''
 
 #from hands import Hand
-
-spade = "\u2660"
-heart = "\u2665"
-diamond = "\u2666"
-club = "\u2663"
-
-#all_cards = ['🂱 ','🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫' ,'🂭', '🂮', '🃁', '🃂', '🃃', '🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔', '🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃝', '🃞']
-
-#facedown='🂠 '
-
-all_cards = [spade+'K', spade+'Q']
-print(all_cards)
 
 class Hand:
     def __init__(self,lst):
         self.lst = lst
         
     def __str__(self):
-        return str([str(y) for y in self.lst])
-    #return 'cards:' + str(self.lst) + '\nindcs:' + str([str(i)+' ' for i in range(len(self.lst))])
+        #each item will be either a string or a Hand. nothing else
+        out=[]
+        for item in self.lst:
+            out.append(str(item))
+
+            ''' #was going to have melds within Hand class
+            #decided to have faceup and facedown be Hands within Player class
+            #in any case this if statement did nothing
+            if isinstance(item, Hand):
+                out.append(str(item))
+            else:
+                out.append(str(item))
+            '''
+        
+        return 'melds:' + '\n'+ 'cards:' + '  '.join(out) + '\nindcs:' + ''.join([str(i).zfill(2)+' ' for i in range(len(self.lst))])
      #   return str(self.lst)
 
-    def len(self):
+
+    def __getitem__(self, N):
+        return self.lst[N]
+    
+    def __len__(self):
         return len(self.lst)
     
     def swap(self, N,M):
@@ -69,44 +73,134 @@ class Hand:
             print('try again.')
 
 
-    def order(perm):#permutation
-        pass
-        
+    def order(self,perm):#permutation
+        try:
+            #print([i for i in range(len(self.lst))])
+            assert sorted(perm) == [i for i in range(len(self.lst))]
+            self.lst = [self.lst[perm[i]] for i in range(len(self.lst))]
+        except:
+            print('invalid permutation.')
 
+    def add_space(self,N):
+        out = []
+        for i in range(len(self.lst)):
+            if i==N:
+                out.append('_')
+            out.append(self.lst[i])            
+        self.lst=out
+
+    def remove_space(self,N):
+        try:
+            assert self.lst[N] == '_'
+            self.lst = self.lst[:N] + self.lst[N+1:]
+        except:
+            print('cannot remove; item is not a space')
+
+    def add_card(self, card):
+        self.lst.append(card)
+
+    def remove_card(self, N):
+        try:
+            assert self.lst[N] != '_'
+            out=self.lst[N]
+            self.lst = self.lst[:N] + self.lst[N+1:]
+            return out
+        except:
+            'remove space with remove_space; also make sure index is in range'
+
+
+
+
+spade = "\u2660"
+heart = "\u2665"
+diamond = "\u2666"
+club = "\u2663"
+
+all_cards=['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂼', '🂽', '🂾', '🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂬', '🂭', '🂮', '🃁','🃂,', '🃃','🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃌', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔','🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃜', '🃝','🃞 ']
+
+c=all_cards #lazy
+
+class Player():
+    def __init__(self, facedown=[], faceup=[]):
+        self.facedown = Hand(facedown)
+        self.faceup = Hand(faceup)
+                
+
+    def __str__(self):
+        return '-----------------------------\n'+'HAND:\n'+str(self.facedown)+'\n-----------------------------\nTABLE:\n'+str(self.faceup)
+
+    def hand(self):
+        return self.facedown
+    
+    def table(self):
+        return self.faceup
+    
+    def lay_down(self, indices, down=True):#list of indices
+        #down=True --> facedown->faceup
+        #down=False--> faceup->facedown
+        try:
+            #reverse indices
+            pop_list=sorted(indices)[::-1]
+            #print(pop_list)
+            if down==True:
+                for ind in pop_list:
+                    card = self.facedown[ind]
+                    self.facedown.remove_card(ind)
+                    self.faceup.add_card(card)
+            else:
+                for ind in pop_list:
+                    card = self.faceup[ind]
+                    self.faceup.remove_card(ind)
+                    self.facedown.add_card(card)
+        except:
+            print('fail')
+                
+            
+        
+    
+            
 if __name__=="__main__":
+    '''
     #dumb tests
-    x = Hand(['ah', 'jh', Hand(['kh', 'qh'])])
+    #x = Hand(['ah', 'jh', Hand(['kh', 'qh'])])
+    x=Hand([c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[12]])
     print(x)
     #x.swap(1,3)
     #print(x)
     #x.move_before(3,1)
     x.move_before(1,3)
     print(x)
+    x.add_space(5)
+    print(x)
+    x.remove_space(6)
+    print(x)
+    x.remove_space(5)
+    print(x)
+    '''
+    
+    x = Hand([2,3,4,5,6,7,8])
+    print(x)
+    x.order([2,0,1])
+    print(x)
+    print('x[2]=',x[2])
+    
 
+    Adrian = Player(x)
+    print(Adrian)
+    Adrian.lay_down([0,3])
+    print(Adrian)
+    Adrian.lay_down([0,1], False)
+    print(Adrian)
+    Adrian.hand().add_space(3)
+    print(Adrian)
 
 
 '''
 
-put card N after card M
-put card N before card M
+[Decided against] put card N after card M
+[DONE] put card N before card M
 [DONE] swap cards N and M
-order cards ABCDEF as DEACBF or anything
+[DONE] order cards ABCDEF as DEACBF or anything
 meld: make a group of cards (remove cards and make a meld object which is then put in the list)
 
 '''
-
-
-
-
-
-
-
-
-
-b='🂱 🂲 🂳 🂴 🂵 🂶 🂷 🂸 🂹 🂺 🂻 🂼 🂽 🂾 🂡 🂢 🂣 🂤 🂥 🂦 🂧 🂨 🂩 🂪 🂫 🂬 🂭 🂮 🃁 🃂 🃃 🃄 🃅 🃆 🃇 🃈 🃉 🃊 🃋 🃌 🃍 🃎 🃑 🃒 🃓 🃔 🃕 🃖 🃗 🃘 🃙 🃚 🃛 🃜 🃝 🃞 '
-
-
-
-#, '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂼', '🂽', '🂾', '🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂬', '🂭', '🂮', '🃁','🃂,', '🃃','🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃌', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔','🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃜', '🃝','🃞 ']
-
-

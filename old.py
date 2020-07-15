@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# https://realpython.com/python-sockets/
 import sys
 import socket
 
@@ -19,23 +18,18 @@ club = "\u2663"
 
 
 def main():
-    
     print(spade,heart,diamond,club)
-    PORT1 = 6969 #port that client connects to and host listens to
-    PORT2 = 7000 #these just have to be >1023 to be 'non-privileged'
+    PORT = 6969
 
     DATA_AMT = 1024
     assert len(sys.argv) >= 2
     
     if sys.argv[1] == 'host':
-        #python3 war.py host
         assert len(sys.argv) == 2
         HOST = "127.0.0.1"
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((HOST, PORT1))
-            #s.bind((HOST, PORT2))
+            s.bind((HOST, PORT))
             s.listen()
-            s.setblocking(False)
             conn, addr = s.accept()
             with conn:
                 print('Connected by', addr)
@@ -46,15 +40,12 @@ def main():
                     print('Host received', data)
                     conn.sendall(data)
     
-    elif sys.argv[1] == 'client1' or sys.argv[1] == 'client2':
+    elif sys.argv[1] == 'client':
         #python3 war.py client 127.0.0.1
         assert len(sys.argv) == 3
         HOST = sys.argv[2]
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            if sys.argv[1] == 'client1':
-                s.connect((HOST, PORT1))
-            elif sys.argv[1] == 'client2':
-                s.connect((HOST, PORT2))
+            s.connect((HOST, PORT))
 
 
             while True:
@@ -67,12 +58,12 @@ def main():
                 data = s.recv(DATA_AMT)
 
                 print('Host received', repr(data))
-    
+                print('current state', state)
+
     
         
     else:
-        print('first arg must be "host", "client1", or "client2"')
-        #print('first arg but be "host" or "client"')
+        print('first arg must be either "client" or "host"')
                         
 
 

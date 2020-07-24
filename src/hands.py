@@ -2,6 +2,8 @@
 
 #from hands import Hand
 
+import random
+
 class Hand:
     def __init__(self,lst):
         self.lst = lst
@@ -106,7 +108,7 @@ class Hand:
             self.lst = self.lst[:N] + self.lst[N+1:]
             return out
         except:
-            'remove space with remove_space; also make sure index is in range'
+            print('remove space with remove_space; also make sure index is in range')
 
 
 
@@ -118,22 +120,21 @@ club = "\u2663"
 
 all_cards=['🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂼', '🂽', '🂾', '🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂬', '🂭', '🂮', '🃁','🃂,', '🃃','🃄', '🃅', '🃆', '🃇', '🃈', '🃉', '🃊', '🃋', '🃌', '🃍', '🃎', '🃑', '🃒', '🃓', '🃔','🃕', '🃖', '🃗', '🃘', '🃙', '🃚', '🃛', '🃜', '🃝','🃞 ']
 
-c=all_cards #lazy
 
 class Player():
-    def __init__(self, facedown=[], faceup=[]):
-        self.facedown = Hand(facedown)
-        self.faceup = Hand(faceup)
+    def __init__(self, public, private): #lists
+        self.public = Hand(public)
+        self.private = Hand(private)
                
 
     def __str__(self):
-        return '-----------------------------\n'+'HAND:\n'+str(self.facedown)+'\n-----------------------------\nTABLE:\n'+str(self.faceup)
+        return '-----------------------------\n'+'HAND:\n'+str(self.private)+'\n-----------------------------\nTABLE:\n'+str(self.public)
 
-    def hand(self):
-        return self.facedown
+    def public(self):
+        return self.public
     
-    def table(self):
-        return self.faceup
+    def private(self):
+        return self.private
     
     def lay_down(self, indices, down=True):#list of indices
         #down=True --> facedown->faceup
@@ -144,21 +145,68 @@ class Player():
             #print(pop_list)
             if down==True:
                 for ind in pop_list:
-                    card = self.facedown[ind]
-                    self.facedown.remove_card(ind)
-                    self.faceup.add_card(card)
+                    card = self.private[ind]
+                    self.private.remove_card(ind)
+                    self.public.add_card(card)
             else:
                 for ind in pop_list:
-                    card = self.faceup[ind]
-                    self.faceup.remove_card(ind)
-                    self.facedown.add_card(card)
+                    card = self.public[ind]
+                    self.public.remove_card(ind)
+                    self.private.add_card(card)
         except:
             print('fail')
                 
 
 
+class Deck:
+    def __init__(self, num_decks=1):
+        try:
+            assert num_decks in [1,2]
+        except:
+            print("only 1 or 2 decks please")
 
-#class Game(num_players, num_decks, num_cards,)
+
+        self.deck = all_cards*num_decks
+        self.discard = []
+
+    def __str__(self):
+        if len(self.deck)>0:
+            if len(self.discard)>0:
+                return '🂠 '+self.discard[-1]
+            else:
+                return '🂠 '
+        else:
+            if len(self.discard)>0:
+                return '🂠 '+self.discard[-1]
+            else:
+                return ''
+        
+    def shuffle(self, option):
+        if option==1:
+            self.deck = self.deck+self.discard
+            self.discard=[]
+            random.shuffle(self.deck)
+        elif option==2:
+            random.shuffle(self.deck)
+
+    def add_to_discard(self, card):
+        self.discard = self.discard + [card]
+
+    def draw(self, which_pile):
+        if which_pile.lower() == 'deck':
+            d = self.deck
+        elif which_pile.lower() == 'discard':
+            d = self.discard
+        else:
+            print('can only draw from deck or discard')
+
+        if len(d) > 0:
+            return d.pop()
+        else:
+            print('len=0')
+    
+#class Game(num_players, num_decks, num_cards):
+    
 
 #deck and discard are lists treated as stacks; that is, until deck runs out, at which point discard is shuffled and turned into deck
 #add a messenger for bets
@@ -172,39 +220,76 @@ class Player():
     
             
 if __name__=="__main__":
-    '''
-    #dumb tests
-    #x = Hand(['ah', 'jh', Hand(['kh', 'qh'])])
-    x=Hand([c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[12]])
-    print(x)
-    #x.swap(1,3)
-    #print(x)
-    #x.move_before(3,1)
-    x.move_before(1,3)
-    print(x)
-    x.add_space(5)
-    print(x)
-    x.remove_space(6)
-    print(x)
-    x.remove_space(5)
-    print(x)
-    '''
+    test1=False
+    test2=False
+    test3=True
+    test4=False
     
-    x = Hand([2,3,4,5,6,7,8])
-    print(x)
-    x.order([2,0,1])
-    print(x)
-    print('x[2]=',x[2])
     
+    if test1==True:
+        #dumb tests
+        #x = Hand(['ah', 'jh', Hand(['kh', 'qh'])])
+        x=Hand([c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[9],c[10],c[11],c[12]])
+        print(x)
+        #x.swap(1,3)
+        #print(x)
+        #x.move_before(3,1)
+        x.move_before(1,3)
+        print(x)
+        x.add_space(5)
+        print(x)
+        x.remove_space(6)
+        print(x)
+        x.remove_space(5)
+        print(x)
 
-    Adrian = Player(x)
-    print(Adrian)
-    Adrian.lay_down([0,3])
-    print(Adrian)
-    Adrian.lay_down([0,1], False)
-    print(Adrian)
-    Adrian.hand().add_space(3)
-    print(Adrian)
+    if test2==True:
+        x = Hand([2,3,4,5,6,7,8])
+        print(x)
+        x.order([2,0,1])
+        print(x)
+        print('x[2]=',x[2])
+
+    if test3==True:
+        x = Hand([2,3,4,5,6,7,8])
+        Adrian = Player(x, [])
+        print(Adrian)
+        Adrian.lay_down([0,3])
+        print(Adrian)
+        Adrian.lay_down([0,1], False)
+        print(Adrian)
+        Adrian.private.add_space(3)
+        print(Adrian)
+
+
+    if test4==True:
+        a=Deck()
+        print(a)
+        x=a.draw('deck')
+        #print(x)
+        a.add_to_discard(x)
+        print(a)
+    
+        x=a.draw('deck')
+        #print(x)
+        a.add_to_discard(x)
+        print(a)
+    
+        a.shuffle(2)
+        print(a)
+    
+        x=a.draw('deck')
+        #print(x)
+        a.add_to_discard(x)
+        print(a)
+    
+        a.shuffle(1)
+        print(a)
+    
+        x=a.draw('deck')
+        #print(x)
+        a.add_to_discard(x)
+        print(a)
 
 
 '''

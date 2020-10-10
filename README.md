@@ -1,3 +1,3 @@
 May 20 2020
 
-Game server to play card and dice games. Hosting server with a centralized deck.
+Game server to play card games. Hosting server with a centralized deck.

@@ -1,39 +1,87 @@
 import os
-
-import discord
 from dotenv import load_dotenv
+
+from discord.ext import commands
+
+import pydealer
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-client = discord.Client()
+bot = commands.Bot(command_prefix=';')
+
 
 
 players = {}
 
-@client.event
-async def on_ready():
-    print(f'{client.user} has connected to Discord!')
+deck = pydealer.Deck()
+deck.shuffle()
+discard_pile = pydealer.Stack()
 
 
 
+@bot.command(name='ingame', help='returns if user in game')
+async def in_game(ctx):
+    #print(ctx.author, client.user)
+    await ctx.send(str(ctx.author) in players)
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+@bot.command(name='table', help='prints the game state')
+async def table(ctx):
+    if len(discard_pile) > 0:
+        await ctx.send(str(len(deck)) + " cards in deck, " + str(len(discard_pile)) + "cards in discard, faceup:" + str(discard_pile[0]) )
+    else:
+        await ctx.send(str(len(deck)) + " cards in deck, 0 cards in discard" )
 
-    if message.content == 'robo-dealer, add me':
-        if message.author in players:
-            players[message.author] += 1
-        else:
-            players[message.author] = 3
-        await message.channel.send(str([str(x) for x in players]))
-        await message.channel.send(players[message.author])
-        await message.author.send('TEST')
-            
-#class CustomClient(discord.Client):
-#    async def on_ready(self):
-#        print(f'{client.user} has connected to Discord!')
+        
+    await ctx.send('\n'.join( [str(player)+': '+str(players[player][1]) for player in players] ))
+
+
+@bot.command(name='addme', help='adds player to game')
+async def add_me(ctx):
+    #await ctx.send('testing testing')
+    if str(ctx.author) in players:
+        await ctx.send('already in game')
+    else:
+        players[str(ctx.author)] = [[],[]]
+        await ctx.send(str(ctx.author) + ' added to game')
+        await table(ctx)
+
+
+@bot.command(name='hand', help='PMs you your hand')
+async def hand(ctx):
+    await ctx.author.send(str(players[str(ctx.author)]))
+
+@bot.command(name='draw', help='draws a card from discard or deck')
+async def draw(ctx, num: int, pile: str):
+    if pile == 'discard':
+        temp = discard_pile.deal(num)
+    else: #LAZY
+        temp = deck.deal(num)
+
     
-client.run(TOKEN)
+    players[str(ctx.author)][0] += [temp[i] for i in range(len(temp))]
+    await hand(ctx)
+
+@bot.command(name='discard', help='moves a card to discard pile')
+async def discard(ctx, ind: int):
+    disc = players[str(ctx.author)][0][ind]
+    players[str(ctx.author)][0].remove(disc)
+    discard_pile.add(disc)
+
+@bot.command(name='play', help='moves a card to table')
+async def play(ctx, ind: int):
+    disc = players[str(ctx.author)][0][ind]
+    players[str(ctx.author)][0].remove(disc)
+    players[str(ctx.author)][1].append(disc)
+
+@bot.command(name='shuffle', help='shuffles discard into deck')
+async def shuffle(ctx):
+    deck.shuffle
+    
+    
+
+@bot.event
+async def on_ready():
+    print(f'{bot.user.name} has connected to Discord!')
+
+bot.run(TOKEN)
